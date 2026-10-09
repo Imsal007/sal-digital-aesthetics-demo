@@ -187,8 +187,8 @@ document.getElementById("submitBooking").onclick = async () => {
     } catch { ok = false; }
   }
   const wa = document.getElementById("waContinue");
-  const msg = encodeURIComponent(`Hi Tania, I've just booked ${chosenTreatment.name} on ${chosenDate} at ${chosenTime}. My name is ${name}.`);
-  wa.href = `https://wa.me/447388562289?text=${msg}`;
+  const msg = encodeURIComponent(`Hi, I've just booked ${chosenTreatment.name} on ${chosenDate} at ${chosenTime}. My name is ${name}.`);
+  wa.href = `#`; // WhatsApp contact disabled for demo — will be configured per clinic`
 
   const payNow = document.getElementById("payNow");
   if (ok && checkoutUrl) {
@@ -260,7 +260,7 @@ const waToggle = document.getElementById("waToggle");
 function setWa(open) {
   waCard.hidden = !open;
   waToggle.setAttribute("aria-expanded", String(open));
-  waToggle.setAttribute("aria-label", open ? "Close WhatsApp panel" : "Message Tania on WhatsApp");
+  waToggle.setAttribute("aria-label", open ? "Close WhatsApp panel" : "Message on WhatsApp");
 }
 waToggle.onclick = () => setWa(waCard.hidden);
 document.getElementById("waClose").onclick = () => { setWa(false); waToggle.focus(); };
