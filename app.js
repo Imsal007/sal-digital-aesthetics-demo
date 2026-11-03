@@ -46,10 +46,10 @@ function openModal(treatmentId) {
   sel.innerHTML = TREATMENTS.map(t =>
     `<option value="${t.id}" ${t.id === treatmentId ? "selected" : ""}>${t.name} — ${fmtPrice(t.price)}</option>`).join("");
   sel.value = treatmentId || TREATMENTS[0].id;
-  const d = new Date(); d.setDate(d.getDate() + 1);
   const dateInput = document.getElementById("dateInput");
-  dateInput.min = d.toISOString().split("T")[0];
-  dateInput.value = dateInput.min;
+  dateInput.min = londonDatePlus(1);
+  dateInput.value = nextOpenDay(dateInput.min);
+  checkOpenDay();
   // focus the step's own first control, not the close button, so the
   // dialog announces what it is before how to leave it
   const step = modalPanel.querySelector(".booking-step:not([hidden])");
@@ -98,7 +98,7 @@ document.getElementById("toStep2").onclick = () => {
 /* step 2 → 3 */
 document.getElementById("toStep3").onclick = () => {
   chosenDate = document.getElementById("dateInput").value;
-  if (!chosenDate) return;
+  if (!chosenDate || !isOpenDay(chosenDate)) { checkOpenDay(); return; }
   loadSlots();
   showStep(3, "fwd");
 };
@@ -127,7 +127,7 @@ async function loadSlots() {
     });
     note.textContent = taken.length === SLOT_TIMES.length
       ? "Fully booked that day — please choose another."
-      : "Times shown are available.";
+      : "Times shown are available (UK time).";
   } catch {
     note.textContent = "Could not check live availability — please try WhatsApp if unsure.";
   }
@@ -140,9 +140,33 @@ document.getElementById("timeSlots").addEventListener("click", e => {
   chosenTime = slot.dataset.time;
   document.getElementById("toStep4").disabled = false;
 });
+/* ---- Time zone safety ------------------------------------------------
+   The clinic works in UK time. Dates travel as plain "YYYY-MM-DD" and times
+   as "HH:MM" strings, never as timestamps, so the clocks changing (or a
+   visitor in another country) cannot move a booking. "Today" is always
+   London's today, not the visitor's device date. */
+const CLINIC_TZ = "Europe/London";
+const londonDatePlus = days => {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: CLINIC_TZ,
+    year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());   // YYYY-MM-DD
+  const [y, m, d] = parts.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+};
+const weekdayOf = iso => new Date(iso + "T12:00:00Z").getUTCDay();          // 0 = Sunday, zone-free
+const isOpenDay = iso => CLINIC_DAYS.includes(weekdayOf(iso));
+const nextOpenDay = iso => { let d = iso; for (let i = 0; i < 7 && !isOpenDay(d); i++) { d = new Date(d + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 1); d = d.toISOString().slice(0, 10); } return d; };
+function checkOpenDay() {
+  const v = document.getElementById("dateInput").value;
+  const note = document.getElementById("dateNote");
+  const ok = !!v && isOpenDay(v);
+  document.getElementById("toStep3").disabled = !ok;
+  note.textContent = !v ? "" : ok ? "" : "We're closed on Sundays — please pick Monday to Saturday.";
+}
+document.getElementById("dateInput").addEventListener("input", checkOpenDay);
+
 const friendlyDate = iso =>
-  new Date(iso + "T12:00:00").toLocaleDateString("en-GB",
-    { weekday: "long", day: "numeric", month: "long" });
+  new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB",
+    { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
 /* step 3 → 4 */
 document.getElementById("toStep4").onclick = () => {
@@ -188,7 +212,7 @@ document.getElementById("submitBooking").onclick = async () => {
   }
   const wa = document.getElementById("waContinue");
   const msg = encodeURIComponent(`Hi, I've just booked ${chosenTreatment.name} on ${chosenDate} at ${chosenTime}. My name is ${name}.`);
-  wa.href = `https://wa.me/447946080812?text=${msg}`;
+  wa.href = `https://wa.me/447438815827?text=${msg}`;
 
   const payNow = document.getElementById("payNow");
   if (ok && checkoutUrl) {
