@@ -43,6 +43,10 @@ const TREATMENTS = [
 const CLINIC_DAYS = [1,2,3,4,5,6];        // Mon–Sat
 const SLOT_TIMES = ["09:30","11:00","12:30","14:00","15:30","17:00"];
 
+/* Which clinic this site is, in the shared booking script: sets the email
+   branding, calendar and booking ID prefix. */
+const BRAND = "aurelia";
+
 /* Apps Script web app endpoint (project "TCB Automations").
    Currently deployed on the SAL Digital test account — redeploying keeps this
    URL stable, so this only changes if the whole project moves accounts. */

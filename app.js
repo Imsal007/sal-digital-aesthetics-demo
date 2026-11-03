@@ -117,7 +117,7 @@ async function loadSlots() {
   try {
     const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      body: JSON.stringify({ action: "checkSlots", date: chosenDate, minutes: chosenTreatment.minutes, times: SLOT_TIMES })
+      body: JSON.stringify({ action: "checkSlots", brand: BRAND, date: chosenDate, minutes: chosenTreatment.minutes, times: SLOT_TIMES })
     });
     const data = await res.json();
     // Apps Script replies { taken: [...] }; tolerate a bare array too
@@ -191,7 +191,7 @@ document.getElementById("submitBooking").onclick = async () => {
   const btn = document.getElementById("submitBooking");
   btn.disabled = true; btn.textContent = "Booking…";
   const payload = {
-    action: "book",
+    action: "book", brand: BRAND,
     treatmentId: chosenTreatment.id, treatmentName: chosenTreatment.name,
     price: chosenTreatment.price, depositPercent: DEPOSIT_PERCENT,
     groupKey: chosenTreatment.groupKey, minutes: chosenTreatment.minutes,
@@ -295,7 +295,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && !waCard.hidden) { setWa(false); waToggle.focus(); }
 });
 
-/* ---------- 4c. Contact form (Formspree) ---------- */
+/* ---------- 4c. Contact form (sent to the clinic inbox by the Apps Script) ---------- */
 const contactForm = document.getElementById("contactForm");
 const cfStatus = document.getElementById("cfStatus");
 
@@ -304,22 +304,16 @@ contactForm.addEventListener("submit", async e => {
   const btn = document.getElementById("cfSubmit");
   cfStatus.className = "form-status";
 
-  if (contactForm.action.includes("PASTE_YOUR_FORMSPREE_ID")) {
-    cfStatus.textContent = "The message form isn't connected yet — please use WhatsApp for now.";
-    cfStatus.classList.add("err");
-    return;
-  }
-
   btn.disabled = true;
   const original = btn.textContent;
   btn.textContent = "Sending…";
   try {
-    const res = await fetch(contactForm.action, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      body: new FormData(contactForm),
-      headers: { Accept: "application/json" }
+      body: JSON.stringify({ action: "contact", brand: BRAND, ...Object.fromEntries(new FormData(contactForm)) })
     });
-    if (res.ok) {
+    const out = await res.json();
+    if (out.ok) {
       contactForm.reset();
       cfStatus.textContent = "Thank you — your message is with me. I'll reply as soon as I can.";
       cfStatus.classList.add("ok");
