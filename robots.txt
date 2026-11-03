@@ -20,4 +20,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://imsal007.github.io/ts.curatedbeauty/sitemap.xml
+Sitemap: https://imsal007.github.io/sal-digital-aesthetics-demo/sitemap.xml

@@ -1,5 +1,5 @@
 /* =========================================================
-   Tania's Curated Beauty — booking flow
+   Aurelia Aesthetics — booking flow
    1. render treatment menu
    2. 4-step booking modal (treatment → day → time → details)
    3. checks live availability via Google Apps Script
@@ -188,7 +188,7 @@ document.getElementById("submitBooking").onclick = async () => {
   }
   const wa = document.getElementById("waContinue");
   const msg = encodeURIComponent(`Hi, I've just booked ${chosenTreatment.name} on ${chosenDate} at ${chosenTime}. My name is ${name}.`);
-  wa.href = `#`; // WhatsApp contact disabled for demo — will be configured per clinic`
+  wa.href = `https://wa.me/447946080812?text=${msg}`;
 
   const payNow = document.getElementById("payNow");
   if (ok && checkoutUrl) {
